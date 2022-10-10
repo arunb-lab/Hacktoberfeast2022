@@ -1,0 +1,39 @@
+Jira webhook
+--------------------------------------------------------------
+
+try {
+    Zabbix.log(4, '[ Jira webhook ] Started with params: ' + value);
+    var result = {
+            'tags': {
+                'endpoint': 'jira'
+            }
+        },
+        params = JSON.parse(value),
+        req = new HttpRequest(),
+        fields = {},
+        resp;
+    if (params.HTTPProxy) {
+        req.setProxy(params.HTTPProxy);
+    }
+    req.addHeader('Content-Type: application/json');
+    req.addHeader('Authorization: Basic ' + params.authentication);
+    fields.summary = params.summary;
+    fields.description = params.description;
+    fields.project = {key: params.project_key};
+    fields.issuetype = {id: params.issue_id};
+    resp = req.post('https://tsupport.zabbix.lan/rest/api/2/issue/',
+        JSON.stringify({"fields": fields})
+    );
+    if (req.getStatus() != 201) {
+        throw 'Response code: ' + req.getStatus();
+    }
+    resp = JSON.parse(resp);
+    result.tags.issue_id = resp.id;
+    result.tags.issue_key = resp.key;
+    return JSON.stringify(result);
+}
+catch (error) {
+    Zabbix.log(4, '[ Jira webhook ] Issue creation failed json : ' + JSON.stringify({"fields": fields}));
+    Zabbix.log(3, '[ Jira webhook ] issue creation failed : ' + error);
+    throw 'Failed with error: ' + error;
+}
