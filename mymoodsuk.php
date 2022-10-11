@@ -1,0 +1,7 @@
+<?php
+
+
+
+print"WTF PHP";
+
+?>
